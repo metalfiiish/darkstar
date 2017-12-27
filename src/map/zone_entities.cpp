@@ -771,7 +771,7 @@ CCharEntity* CZoneEntities::GetCharByName(int8* name)
         for (EntityList_t::const_iterator it = m_charList.begin(); it != m_charList.end(); ++it)
         {
             CCharEntity* PCurrentChar = (CCharEntity*)it->second;
-            if (stricmp(PCurrentChar->GetName(), name) == 0)
+            if (stricmp((char*)PCurrentChar->GetName(), (const char*)name) == 0)
             {
                 return PCurrentChar;
             }
@@ -819,12 +819,16 @@ void CZoneEntities::PushPacket(CBaseEntity* PEntity, GLOBAL_MESSAGE_TYPE message
             }
             case CHAR_INRANGE:
             {
+                // todo: rewrite packet handlers and use enums instead of rawdog packet ids
+                // 30 yalms if action packet, 50 otherwise
+                const int checkDistanceSq = packet->id() == 0x0028 ? 900 : 2500;
+
                 for (EntityList_t::const_iterator it = m_charList.begin(); it != m_charList.end(); ++it)
                 {
                     CCharEntity* PCurrentChar = (CCharEntity*)it->second;
                     if (PEntity != PCurrentChar)
                     {
-                        if (distance(PEntity->loc.p, PCurrentChar->loc.p) < 50 &&
+                        if (distanceSquared(PEntity->loc.p, PCurrentChar->loc.p) < checkDistanceSq &&
                             ((PEntity->objtype != TYPE_PC) || (((CCharEntity*)PEntity)->m_moghouseID == PCurrentChar->m_moghouseID)))
                         {
                             if (packet->id() == 0x00E &&
